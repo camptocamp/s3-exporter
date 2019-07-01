@@ -21,6 +21,7 @@
 #
 import fnmatch
 import time
+import re
 from dateutil import parser as dtparser
 from prometheus_client import start_http_server
 from prometheus_client.core import GaugeMetricFamily, REGISTRY
@@ -109,6 +110,12 @@ class S3Collector(object):
             oldest_file_name = oldest_file['Key']
             latest_modified = string_to_timestamp(last_file['LastModified'])
             oldest_modified = string_to_timestamp(oldest_file['LastModified'])
+
+            is_gitlab = re.compile("^[0-9]{10}_[0-9]{4}_(0[1-9]|1[0-2])_(0[1-9]|[1-2][0-9]|3[0-1])_(([0-9]|[0-9]{2})\.){2}([0-9]|[0-9]{2})-(ee|ce)_gitlab_backup.tar$")
+            if is_gitlab.match(last_file_name):
+                last_file_name = re.split(r"(^[0-9]{10}_[0-9]{4}_(0[1-9]|1[0-2])_(0[1-9]|[1-2][0-9]|3[0-1])_)", last_file_name)[4]
+            if is_gitlab.match(oldest_file_name):
+                oldest_file_name = re.split(r"(^[0-9]{10}_[0-9]{4}_(0[1-9]|1[0-2])_(0[1-9]|[1-2][0-9]|3[0-1])_)", oldest_file_name)[4]
 
             file_count_gauge.add_metric([folder], len(files))
 
